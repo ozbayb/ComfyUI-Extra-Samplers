@@ -562,9 +562,24 @@ def sample_ttm_jvp(model, x, sigmas, extra_args=None, callback=None, disable=Non
     return x
 
 # Many thanks to Kat + Birch-San for this wonderful sampler implementation! https://github.com/Birch-san/sdxl-play/commits/res/
+# Modified by Clownshark Batwing to allow dynamic itas
 from .other_samplers.refined_exp_solver import sample_refined_exp_s
-def sample_res_solver(model, x, sigmas, extra_args=None, callback=None, disable=None, noise_sampler_type="gaussian", noise_sampler=None, denoise_to_zero=True, simple_phi_calc=False, c2=0.5, ita=torch.Tensor((0.25,)), momentum=0.0):
-    return sample_refined_exp_s(model, x, sigmas, extra_args=extra_args, callback=callback, disable=disable, noise_sampler=noise_sampler or get_noise_sampler(x, sigmas, noise_sampler_type, noise_sampler, extra_args), denoise_to_zero=denoise_to_zero, simple_phi_calc=simple_phi_calc, c2=c2, ita=ita, momentum=momentum)
+def sample_res_solver(model, x, sigmas, itas, extra_args=None, callback=None, disable=None, noise_sampler_type="gaussian", noise_sampler=None, denoise_to_zero=True, simple_phi_calc=False, c2=0.5, momentum=0.0):
+    return sample_refined_exp_s(
+        model, 
+        x, 
+        sigmas, 
+        extra_args=extra_args, 
+        callback=callback, 
+        disable=disable, 
+        noise_sampler=noise_sampler or get_noise_sampler(x, sigmas, noise_sampler_type, noise_sampler, extra_args),
+        denoise_to_zero=denoise_to_zero, 
+        simple_phi_calc=simple_phi_calc, 
+        c2=c2, 
+        ita=itas,  # Use the dynamic itas here
+        momentum=momentum
+    )
+
 
 @torch.no_grad()
 def sample_dpmpp_dualsde_momentum(model, x, sigmas, extra_args=None, callback=None, disable=None, eta=1., s_noise=1., noise_sampler=None, r=1/2, momentum=0.0):

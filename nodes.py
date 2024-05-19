@@ -17,23 +17,37 @@ import kornia
 class SamplerRES_MOMENTUMIZED:
     @classmethod
     def INPUT_TYPES(s):
-        return {"required":
-                    {"noise_sampler_type": (get_noise_sampler_names(), ),
-                     "momentum": ("FLOAT", {"default": 0.5, "min": -1.0, "max": 1.0, "step":0.01}),
-                     "denoise_to_zero": ("BOOLEAN", {"default": True}),
-                     "simple_phi_calc": ("BOOLEAN", {"default": False}),
-                     "ita": ("FLOAT", {"default": 0.25, "min": 0.0, "max": 100.0, "step":0.01, "round": False}),
-                     "c2": ("FLOAT", {"default": 0.5, "min": 0.0, "max": 1.0, "step":0.01, "round": False}),
-                      }
-               }
+        return {
+            "required": {
+                "noise_sampler_type": (get_noise_sampler_names(), ),
+                "momentum": ("FLOAT", {"default": 0.5, "min": -1.0, "max": 1.0, "step": 0.01}),
+                "denoise_to_zero": ("BOOLEAN", {"default": True}),
+                "simple_phi_calc": ("BOOLEAN", {"default": False}),
+                "c2": ("FLOAT", {"default": 0.5, "min": 0.0, "max": 1.0, "step": 0.01}),
+                "itas": ("SIGMAS", ),  # Ensure 'itas' is expected as a list of sigma values
+            }
+        }
+    
     RETURN_TYPES = ("SAMPLER",)
     CATEGORY = "sampling/custom_sampling/samplers"
 
     FUNCTION = "get_sampler"
 
-    def get_sampler(self, noise_sampler_type, momentum, denoise_to_zero, simple_phi_calc, ita, c2):
-        sampler = comfy.samplers.ksampler("res_momentumized", {"noise_sampler_type": noise_sampler_type, "denoise_to_zero": denoise_to_zero, "simple_phi_calc": simple_phi_calc, "c2": c2, "ita": torch.Tensor((ita,)), "momentum": momentum})
+    def get_sampler(self, noise_sampler_type, momentum, denoise_to_zero, simple_phi_calc, c2, itas):
+        # Create a sampler instance using the specified parameters
+        sampler = comfy.samplers.ksampler(
+            "res_momentumized",
+            {
+                "noise_sampler_type": noise_sampler_type,
+                "denoise_to_zero": denoise_to_zero,
+                "simple_phi_calc": simple_phi_calc,
+                "c2": c2,
+                "itas": torch.Tensor(itas),  # Ensure 'itas' is properly converted to a Tensor if not already
+                "momentum": momentum
+            }
+        )
         return (sampler, )
+
 
 class SamplerDPMPP_DUALSDE_MOMENTUMIZED:
     @classmethod
