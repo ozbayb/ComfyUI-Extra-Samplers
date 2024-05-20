@@ -1,3 +1,6 @@
 *.bak
 *~
 __pycache__
+extra_samplers (original).py
+nodes (original).py
+other_samplers/refined_exp_solver (original).py
