@@ -1,4 +1,3 @@
-
 import torch
 from torch import no_grad, FloatTensor
 from tqdm import tqdm
@@ -215,6 +214,7 @@ def _refined_exp_sosu_step(
   )
   
 
+
 @no_grad()
 def sample_refined_exp_s(
   model: FloatTensor,
@@ -249,7 +249,7 @@ def sample_refined_exp_s(
     simple_phi_calc (`bool`, *optional*, defaults to `True`): True = calculate phi_i,j(-h) via simplified formulae specific to j={1,2}. False = Use general solution that works for any j. Mathematically equivalent, but could be numeric differences.
   """
   #assert sigmas[-1] == 0
-  ita = ita.to(x.device)
+  #ita = ita.to(x.device)
 
   sigma_min, sigma_max = sigmas[sigmas > 0].min(), sigmas.max()
 
@@ -257,10 +257,11 @@ def sample_refined_exp_s(
   with tqdm(disable=disable, total=len(sigmas)-(1 if denoise_to_zero else 2)) as pbar:
     for i, (sigma, sigma_next) in enumerate(pairwise(sigmas[:-1].split(1))):
       time = sigmas[i] / sigma_max
+      current_ita = ita[i]
       if 'sigma' not in locals():
         sigma = sigmas[i]
       eps = noise_sampler(sigma, sigma_next).float()
-      sigma_hat = sigma * (1 + ita)
+      sigma_hat = sigma * (1 + current_ita)
       x_hat = x + (sigma_hat ** 2 - sigma ** 2) ** .5 * eps
       x_next, denoised, denoised2, vel, vel_2 = _refined_exp_sosu_step(
         model,
@@ -288,10 +289,12 @@ def sample_refined_exp_s(
         callback(payload)
       x = x_next
     if denoise_to_zero:
+      final_ita = ita[-1]
       eps = noise_sampler(sigma, sigma_next).float()
-      sigma_hat = sigma * (1 + ita)
+      sigma_hat = sigma * (1 + final_ita)
       x_hat = x + (sigma_hat ** 2 - sigma ** 2) ** .5 * eps
-      x_next: FloatTensor = model(x_hat, sigma.to(x_hat.device), **extra_args)
+      x_next: FloatTensor = model(x_hat, torch.zeros_like(sigma).to(x_hat.device), **extra_args)
+      #x_next: FloatTensor = model(x_hat, sigma.to(x_hat.device), **extra_args)
       pbar.update()
       x = x_next
   return x
