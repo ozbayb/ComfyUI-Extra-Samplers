@@ -24,16 +24,19 @@ class SamplerRES_MOMENTUMIZED:
                 "denoise_to_zero": ("BOOLEAN", {"default": True}),
                 "simple_phi_calc": ("BOOLEAN", {"default": False}),
                 "c2": ("FLOAT", {"default": 0.5, "min": 0.0, "max": 1.0, "step": 0.01}),
+                "ita": ("FLOAT", {"default": 0.5, "min": 0.0, "max": 1.0, "step": 0.01}),
+            },
+            "optional": {
                 "itas": ("SIGMAS", ),  # Ensure 'itas' is expected as a list of sigma values
             }
         }
-    
+
     RETURN_TYPES = ("SAMPLER",)
     CATEGORY = "sampling/custom_sampling/samplers"
 
     FUNCTION = "get_sampler"
 
-    def get_sampler(self, noise_sampler_type, momentum, denoise_to_zero, simple_phi_calc, c2, itas):
+    def get_sampler(self, noise_sampler_type, momentum, denoise_to_zero, simple_phi_calc, c2, ita, itas=None):
         # Create a sampler instance using the specified parameters
         sampler = comfy.samplers.ksampler(
             "res_momentumized",
@@ -42,7 +45,8 @@ class SamplerRES_MOMENTUMIZED:
                 "denoise_to_zero": denoise_to_zero,
                 "simple_phi_calc": simple_phi_calc,
                 "c2": c2,
-                "itas": torch.Tensor(itas),  # Ensure 'itas' is properly converted to a Tensor if not already
+                "ita": ita,
+                "itas": torch.Tensor(itas) if itas is not None else None,  # Ensure 'itas' is properly converted to a Tensor if not already
                 "momentum": momentum
             }
         )

@@ -563,7 +563,7 @@ def sample_ttm_jvp(model, x, sigmas, extra_args=None, callback=None, disable=Non
 
 # Many thanks to Kat + Birch-San for this wonderful sampler implementation! https://github.com/Birch-san/sdxl-play/commits/res/
 from .other_samplers.refined_exp_solver import sample_refined_exp_s
-def sample_res_solver(model, x, sigmas, itas, extra_args=None, callback=None, disable=None, noise_sampler_type="gaussian", noise_sampler=None, denoise_to_zero=True, simple_phi_calc=False, c2=0.5, momentum=0.0):
+def sample_res_solver(model, x, sigmas, itas=None, ita=torch.Tensor((0.25,)), extra_args=None, callback=None, disable=None, noise_sampler_type="gaussian", noise_sampler=None, denoise_to_zero=True, simple_phi_calc=False, c2=0.5, momentum=0.0):
     return sample_refined_exp_s(
         model, 
         x, 
@@ -575,7 +575,7 @@ def sample_res_solver(model, x, sigmas, itas, extra_args=None, callback=None, di
         denoise_to_zero=denoise_to_zero, 
         simple_phi_calc=simple_phi_calc, 
         c2=c2, 
-        ita=itas,  # Use the dynamic itas here
+        ita=itas if itas is not None else ita,  # Use the dynamic itas here if provided, else use ita
         momentum=momentum
     )
 
