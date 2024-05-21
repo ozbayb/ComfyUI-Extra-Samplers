@@ -249,7 +249,8 @@ def sample_refined_exp_s(
     simple_phi_calc (`bool`, *optional*, defaults to `True`): True = calculate phi_i,j(-h) via simplified formulae specific to j={1,2}. False = Use general solution that works for any j. Mathematically equivalent, but could be numeric differences.
   """
 
-  ita = ita.to(x.device)
+  if isinstance(ita, torch.Tensor):
+    ita = ita.to(x.device)
 
   sigma_min, sigma_max = sigmas[sigmas > 0].min(), sigmas.max()
 
@@ -257,7 +258,7 @@ def sample_refined_exp_s(
   with tqdm(disable=disable, total=len(sigmas)-(1 if denoise_to_zero else 2)) as pbar:
     for i, (sigma, sigma_next) in enumerate(pairwise(sigmas[:-1].split(1))):
       time = sigmas[i] / sigma_max
-      current_ita = ita[i] if ita.numel() > 1 else ita  # Use dynamic ita if ita is a tensor with more than one element, else use static ita
+      current_ita = ita[i] if isinstance(ita, torch.Tensor) and ita.numel() > 1 else ita  # Use dynamic ita if ita is a tensor with more than one element, else use static ita
       if 'sigma' not in locals():
         sigma = sigmas[i]
       eps = noise_sampler(sigma, sigma_next).float()
@@ -289,7 +290,7 @@ def sample_refined_exp_s(
         callback(payload)
       x = x_next
     if denoise_to_zero:
-      final_ita = ita[-1] if ita.numel() > 1 else ita  # Use dynamic ita if ita is a tensor with more than one element, else use static ita
+      final_ita = ita[-1] if isinstance(ita, torch.Tensor) and ita.numel() > 1 else ita  # Use dynamic ita if ita is a tensor with more than one element, else use static ita
       eps = noise_sampler(sigma, sigma_next).float()
       sigma_hat = sigma * (1 + final_ita)
       x_hat = x + (sigma_hat ** 2 - sigma ** 2) ** .5 * eps
